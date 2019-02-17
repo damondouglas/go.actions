@@ -1,7 +1,5 @@
 package google
 
-import "encoding/json"
-
 // User represents user data in Google payload of request.
 type User struct {
 	UserID              string
@@ -29,8 +27,6 @@ type PackageEntitlement struct {
 		SKU          string
 		SKUType      string // Todo: make enum type
 		InAppDetails struct {
-			InAppPurchaseData  json.RawMessage
-			InAppDataSignature string
 		}
 	}
 }

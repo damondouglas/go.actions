@@ -1,0 +1,27 @@
+{
+  "payload": {
+    "google": {
+      "expectUserResponse": true,
+      "richResponse": {
+        "items": [
+          {
+            "simpleResponse": {
+              "textToSpeech": "PLACEHOLDER"
+            }
+          }
+        ]
+      },
+      "systemIntent": {
+        "intent": "actions.intent.DATETIME",
+        "data": {
+          "@type": "type.googleapis.com/google.actions.v2.DateTimeValueSpec",
+          "dialogSpec": {
+            "requestDatetimeText": "When would you like to schedule the appoinment?",
+            "requestDateText": "What day was that?",
+            "requestTimeText": "What time?"
+          }
+        }
+      }
+    }
+  }
+}

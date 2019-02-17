@@ -9,7 +9,7 @@ type Input struct {
 	Arguments []*Argument
 }
 
-// RawInput  transcription from each turn of conversation.
+// RawInput transcription from each turn of conversation.
 type RawInput struct {
 	InputType string //Todo make enum type
 	Query     string
@@ -41,4 +41,17 @@ type Argument struct {
 	PlaceValue      *Location
 	Extension       json.RawMessage
 	StructuredValue json.RawMessage
+}
+
+// ExpectedInput the Action expects.
+type ExpectedInput struct {
+	InputPrompt        *InputPrompt      `json:"inputPrompt,omitempty"`
+	PossibleIntents    []*ExpectedIntent `json:"possibleIntents,omitempty"`
+	SpeechBiasingHints []string          `json:"speechBiasingHints,omitempty"`
+}
+
+// InputPrompt used for assistant to guide user to provide an input for the app's question.
+type InputPrompt struct {
+	RichInitialPrompt *RichResponse     `json:"richInitialPrompt,omitempty"`
+	NoInputPrompts    []*SimpleResponse `json:"noInputPrompts,omitempty"`
 }

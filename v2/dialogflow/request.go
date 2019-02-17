@@ -21,7 +21,7 @@ type Request struct {
 			Name        string
 			DisplayName string
 		}
-		IntentDetectionConfidence int
+		IntentDetectionConfidence float64
 		DiagnosticInfo            struct {
 		}
 		LanguageCode string
@@ -34,7 +34,7 @@ type Request struct {
 	Session string
 }
 
-// Decode io.Reqder into Request.
+// Decode io.Reader into Request.
 func Decode(r io.Reader) (req *Request, err error) {
 	err = json.NewDecoder(r).Decode(&req)
 	return req, err

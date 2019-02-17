@@ -1,0 +1,46 @@
+{
+  "payload": {
+    "google": {
+      "expectUserResponse": true,
+      "richResponse": {
+        "items": [
+          {
+            "simpleResponse": {
+              "textToSpeech": "Simple Responses must be included."
+            }
+          },
+          {
+            "carouselBrowse": {
+              "items": [
+                {
+                  "title": "Item 1 Title",
+                  "openUrlAction": {
+                    "url": "https://google.com"
+                  },
+                  "description": "Item 1 Description",
+                  "footer": "Item 1 footer",
+                  "image": {
+                    "url": "https://IMAGE_URL_HERE",
+                    "accessibilityText": "Information about Google Assistant"
+                  }
+                },
+                {
+                  "title": "Item 2 Title",
+                  "openUrlAction": {
+                    "url": "https://google.com"
+                  },
+                  "description": "Item 2 Description",
+                  "footer": "Item 2 footer",
+                  "image": {
+                    "url": "https://IMAGE_URL_HERE",
+                    "accessibilityText": "Information about Google Assistant"
+                  }
+                }
+              ]
+            }
+          }
+        ]
+      }
+    }
+  }
+}

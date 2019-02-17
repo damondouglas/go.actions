@@ -1,0 +1,25 @@
+{
+  "payload": {
+    "google": {
+      "expectUserResponse": true,
+      "richResponse": {
+        "items": [
+          {
+            "simpleResponse": {
+              "textToSpeech": "PLACEHOLDER"
+            }
+          }
+        ]
+      },
+      "systemIntent": {
+        "intent": "actions.intent.CONFIRMATION",
+        "data": {
+          "@type": "type.googleapis.com/google.actions.v2.ConfirmationValueSpec",
+          "dialogSpec": {
+            "requestConfirmationText": "Can you confirm?"
+          }
+        }
+      }
+    }
+  }
+}

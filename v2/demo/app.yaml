@@ -1,0 +1,15 @@
+runtime: go
+api_version: go1
+
+handlers:
+- url: /.*
+  script: _go_app
+- url: /_ah/warmup
+  script: _go_app
+  login: admin
+
+env_variables:
+  PROJECT_ID: 'gallery-67d5b'
+
+inbound_services:
+- warmup

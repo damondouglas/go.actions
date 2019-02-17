@@ -1,0 +1,60 @@
+POST https://dddev.ngrok.io/action 
+content-type: application/json
+
+{
+  "responseId": "ea166558-615a-48f3-ae5b-7f55d895784b",
+  "queryResult": {
+    "queryText": "actions_intent_OPTION",
+    "action": "",
+    "parameters": {},
+    "allRequiredParamsPresent": true,
+    "fulfillmentText": "",
+    "fulfillmentMessages": [],
+    "outputContexts": [
+      {
+        "name": "projects/${PROJECTID}/agent/sessions/${SESSIONID}/contexts/actions_intent_option",
+        "parameters": {
+          "OPTION": "key of selected item"
+        }
+      }
+    ],
+    "intent": {
+      "name": "projects/${PROJECTID}/agent/intents/1777d616-a5f7-4838-a9a9-870f2956bd14",
+      "displayName": "gallery"
+    },
+    "intentDetectionConfidence": 1,
+    "diagnosticInfo": {},
+    "languageCode": "en-us"
+  },
+  "originalDetectIntentRequest": {
+    "source": "google",
+    "version": "2",
+    "payload": {
+      "isInSandbox": true,
+      "surface": {
+        "capabilities": []
+      },
+      "inputs": [
+        {
+          "rawInputs": [
+            {
+              "query": "simple",
+              "inputType": "KEYBOARD"
+            }
+          ],
+          "arguments": [
+            {
+              "textValue": "list",
+              "name": "gallery"
+            }
+          ],
+          "intent": "actions.intent.MAIN"
+        }
+      ],
+      "user": {},
+      "conversation": {},
+      "availableSurfaces": []
+    }
+  },
+  "session": "projects/${PROJECTID}/agent/sessions/${SESSIONID}"
+}
