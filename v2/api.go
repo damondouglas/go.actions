@@ -13,7 +13,29 @@ var (
 
 	// VideoType sets media type for video.
 	VideoType = &mediaTypeBase{"VIDEO"}
+
+	// EnglishUS sets language code to en-US.
+	EnglishUS = &languageCodeBase{"en-US"}
 )
+
+// Event represents custom event response.
+type Event struct {
+	Name         string
+	Parameters   map[string]string
+	LanguageCode LanguageCode
+}
+
+// Encode custom event response.
+func (e *Event) Encode(w io.Writer) error {
+	resp := dialogflow.Event{
+		FollowupEventInput: &dialogflow.FollowupEventInput{
+			Name:         e.Name,
+			Parameters:   e.Parameters,
+			LanguageCode: e.LanguageCode.String(),
+		},
+	}
+	return resp.Encode(w)
+}
 
 type baseResponse struct {
 	Suggestions        []string
@@ -266,6 +288,48 @@ func (r *Confirmation) Encode(w io.Writer) error {
 	r.underlyingResponse.Payload.Google.SystemIntent = intent
 
 	return r.underlyingResponse.Encode(w)
+}
+
+// Signin initiates oauth flow to user.
+type Signin struct {
+	baseResponse
+	RequiredResponse string
+}
+
+// Encode Sigin.
+func (r *Signin) Encode(w io.Writer) error {
+	r.underlyingResponse = base()
+	r.baseResponse.Suggestions = r.Suggestions
+	r.baseResponse.suggestions()
+
+	items := r.underlyingResponse.Payload.Google.RichResponse.Items
+	items[0].SimpleResponse = &google.SimpleResponse{
+		TextToSpeech: r.RequiredResponse,
+	}
+
+	intent := &google.SystemIntent{
+		Intent: "actions.intent.SIGN_IN",
+		Data: &google.Data{
+			Type: "type.googleapis.com/google.actions.v2.SignInValueSpec",
+		},
+	}
+
+	r.underlyingResponse.Payload.Google.SystemIntent = intent
+
+	return r.underlyingResponse.Encode(w)
+}
+
+type languageCodeBase struct {
+	value string
+}
+
+func (l *languageCodeBase) String() string {
+	return l.value
+}
+
+// LanguageCode specifies language code.
+type LanguageCode interface {
+	String() string
 }
 
 // MediaType specifies media type.
