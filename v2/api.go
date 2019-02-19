@@ -29,10 +29,13 @@ type Event struct {
 func (e *Event) Encode(w io.Writer) error {
 	resp := dialogflow.Event{
 		FollowupEventInput: &dialogflow.FollowupEventInput{
-			Name:         e.Name,
-			Parameters:   e.Parameters,
-			LanguageCode: e.LanguageCode.String(),
+			Name:       e.Name,
+			Parameters: e.Parameters,
+			// LanguageCode: e.LanguageCode.String(),
 		},
+	}
+	if e.LanguageCode != nil {
+		resp.FollowupEventInput.LanguageCode = e.LanguageCode.String()
 	}
 	return resp.Encode(w)
 }

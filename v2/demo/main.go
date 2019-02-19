@@ -3,11 +3,23 @@ package main
 import (
 	"encoding/json"
 	"net/http"
+	"os"
+
+	"golang.org/x/oauth2"
 
 	"github.com/damondouglas/go.actions/v2"
 	"github.com/damondouglas/go.actions/v2/dialogflow"
+	"github.com/damondouglas/go.actions/v2/identity"
+	calendar "google.golang.org/api/calendar/v3"
 	"google.golang.org/appengine"
 	"google.golang.org/appengine/log"
+)
+
+type requestHandler func(*dialogflow.Request, http.ResponseWriter, *http.Request)
+
+const (
+	pathToSecretKey = "SECRET_PATH"
+	projectIDKey    = "PROJECT_ID"
 )
 
 var (
@@ -118,10 +130,16 @@ var (
 			Suggestions:      suggestions,
 		},
 	}
+
+	intentMap = map[string]requestHandler{
+		"signin":  signin,
+		"profile": profile,
+	}
 )
 
 func main() {
 	http.HandleFunc("/action", action)
+	http.HandleFunc("/auth", auth)
 	appengine.Main()
 }
 
@@ -145,7 +163,7 @@ func action(w http.ResponseWriter, r *http.Request) {
 			log.Errorf(ctx, "%v", err)
 		}
 	} else {
-		log.Errorf(ctx, "key: %s is not supported", key)
+		dispatch(req, w, r)
 	}
 
 }
@@ -175,4 +193,66 @@ func extractType(req *dialogflow.Request) string {
 		return ""
 	}
 	return args[0].TextValue
+}
+
+func dispatch(req *dialogflow.Request, w http.ResponseWriter, r *http.Request) {
+	ctx := appengine.NewContext(r)
+
+	intent := req.QueryResult.Intent.DisplayName
+	log.Infof(ctx, "User:\n%+v\n", req.OriginalDetectIntentRequest.Payload.User)
+
+	if handler, ok := intentMap[intent]; ok {
+		handler(req, w, r)
+	}
+
+	evt := &v2.Event{
+		Name: "fallback",
+	}
+	err := evt.Encode(w)
+	if err != nil {
+		log.Errorf(ctx, "%+v", err)
+	}
+}
+
+func signin(req *dialogflow.Request, w http.ResponseWriter, r *http.Request) {
+	ctx := appengine.NewContext(r)
+
+	evt := v2.Signin{
+		RequiredResponse: "Welcome to the gallery.",
+	}
+	err := evt.Encode(w)
+	if err != nil {
+		log.Errorf(ctx, "%+v", err)
+	}
+}
+
+func profile(req *dialogflow.Request, w http.ResponseWriter, r *http.Request) {
+
+}
+
+func config() (*oauth2.Config, error) {
+	pathToSecret := os.Getenv(pathToSecretKey)
+	return identity.ConfigFromPath(pathToSecret)
+}
+
+func auth(w http.ResponseWriter, r *http.Request) {
+	ctx := appengine.NewContext(r)
+	c, err := config()
+	if err != nil {
+		log.Errorf(ctx, "%+v", err)
+	}
+
+	param := &identity.RedirectParameters{
+		Offline:   true,
+		Force:     true,
+		ProjectID: os.Getenv(projectIDKey),
+		Scopes:    append(identity.BaseScopes, calendar.CalendarReadonlyScope),
+	}
+
+	handler, err := identity.AuthorizationHandler(w, r, c, param)
+	if err != nil {
+		log.Errorf(ctx, "%+v", err)
+	}
+
+	handler(w, r)
 }

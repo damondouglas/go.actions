@@ -10,6 +10,7 @@ handlers:
 
 env_variables:
   PROJECT_ID: 'gallery-67d5b'
+  SECRET_PATH: 'secret/client_secret.json'
 
 inbound_services:
 - warmup
