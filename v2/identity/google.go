@@ -2,7 +2,6 @@ package identity
 
 import (
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"net/http"
 	"net/url"
@@ -43,11 +42,12 @@ type AuthorizationParameters struct {
 
 // RedirectParameters configures redirect url.
 type RedirectParameters struct {
-	State     string
-	Offline   bool
-	Force     bool
-	ProjectID string
-	Scopes    []string
+	State       string
+	Offline     bool
+	Force       bool
+	ProjectID   string
+	Scopes      []string
+	RedirectURL string
 }
 
 // TokenInfo acquires Oauth2 token info from dialogflow.Request User IDToken.
@@ -96,9 +96,9 @@ func IsAuthorizationRequestValid(param *AuthorizationParameters, projectID strin
 	return param.RedirectURI == redirectBase+projectID && param.ClientID == clientID
 }
 
-// RedirectURL builds redirectURL after user authorization.
-func RedirectURL(config *oauth2.Config, param *RedirectParameters) string {
-	config.RedirectURL = redirectBase + param.ProjectID
+// AuthURL builds redirectURL after user authorization.
+func AuthURL(config *oauth2.Config, param *RedirectParameters) string {
+	config.RedirectURL = param.RedirectURL
 	config.Scopes = param.Scopes
 	offlineOpt := oauth2.AccessTypeOnline
 	if param.Offline {
@@ -121,16 +121,16 @@ func AuthorizationHandler(w http.ResponseWriter, r *http.Request, config *oauth2
 		return nil, err
 	}
 
-	if !IsAuthorizationRequestValid(authParam, param.ProjectID, config.ClientID) {
-		return nil, fmt.Errorf("authorization is invalid want: %s, got: %s and want: %s, got: %s", authParam.RedirectURI, r.URL.RawQuery, config.ClientID, authParam.ClientID)
-	}
+	// if !IsAuthorizationRequestValid(authParam, param.ProjectID, config.ClientID) {
+	// 	return nil, fmt.Errorf("authorization is invalid want: %s, got: %s and want: %s, got: %s", authParam.RedirectURI, r.URL.RawQuery, config.ClientID, authParam.ClientID)
+	// }
 
 	param.State = authParam.State
 
-	redirectURL := RedirectURL(config, param)
+	authURL := AuthURL(config, param)
 
 	return func(w http.ResponseWriter, r *http.Request) {
-		http.Redirect(w, r, redirectURL, http.StatusFound)
+		http.Redirect(w, r, authURL, http.StatusFound)
 	}, nil
 }
 

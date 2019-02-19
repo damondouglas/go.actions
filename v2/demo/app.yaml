@@ -11,6 +11,7 @@ handlers:
 env_variables:
   PROJECT_ID: 'gallery-67d5b'
   SECRET_PATH: 'secret/client_secret.json'
+  TEST_HOST: 'https://dddev.ngrok.io'
 
 inbound_services:
 - warmup

@@ -3,8 +3,6 @@ package identity
 import (
 	"net/url"
 	"testing"
-
-	"golang.org/x/oauth2"
 )
 
 func TestParseAuthorizationRequestURL(t *testing.T) {
@@ -44,20 +42,4 @@ func TestParseAuthorizationRequestURL(t *testing.T) {
 		t.Errorf("got: %s, want: %s", got, want)
 	}
 
-}
-
-func TestRedirectURL(t *testing.T) {
-	config := &oauth2.Config{
-		RedirectURL: "REDIRECT_URL",
-		Scopes:      []string{"email,profile,calendar"},
-	}
-	param := &RedirectParameters{
-		Offline:   true,
-		Force:     true,
-		State:     "STATE_STRING",
-		ProjectID: "PROJECT_ID",
-	}
-
-	result := RedirectURL(config, param)
-	t.Error(result)
 }

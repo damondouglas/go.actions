@@ -2,6 +2,8 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
+	"io/ioutil"
 	"net/http"
 	"os"
 
@@ -20,6 +22,7 @@ type requestHandler func(*dialogflow.Request, http.ResponseWriter, *http.Request
 const (
 	pathToSecretKey = "SECRET_PATH"
 	projectIDKey    = "PROJECT_ID"
+	testHostKey     = "TEST_HOST"
 )
 
 var (
@@ -140,6 +143,7 @@ var (
 func main() {
 	http.HandleFunc("/action", action)
 	http.HandleFunc("/auth", auth)
+	http.HandleFunc("/exch", auth)
 	appengine.Main()
 }
 
@@ -242,11 +246,19 @@ func auth(w http.ResponseWriter, r *http.Request) {
 		log.Errorf(ctx, "%+v", err)
 	}
 
+	redirectURL := appengine.DefaultVersionHostname(ctx)
+	if appengine.IsDevAppServer() {
+		redirectURL = os.Getenv(testHostKey)
+	}
+
+	redirectURL = redirectURL + "/exch"
+
 	param := &identity.RedirectParameters{
-		Offline:   true,
-		Force:     true,
-		ProjectID: os.Getenv(projectIDKey),
-		Scopes:    append(identity.BaseScopes, calendar.CalendarReadonlyScope),
+		Offline:     true,
+		Force:       true,
+		ProjectID:   os.Getenv(projectIDKey),
+		Scopes:      append(identity.BaseScopes, calendar.CalendarReadonlyScope),
+		RedirectURL: redirectURL,
 	}
 
 	handler, err := identity.AuthorizationHandler(w, r, c, param)
@@ -255,4 +267,13 @@ func auth(w http.ResponseWriter, r *http.Request) {
 	}
 
 	handler(w, r)
+}
+
+func exch(w http.ResponseWriter, r *http.Request) {
+	ctx := appengine.NewContext(r)
+	data, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		log.Errorf(ctx, "%+v", err)
+	}
+	fmt.Fprint(w, string(data))
 }
