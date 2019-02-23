@@ -261,7 +261,9 @@ func auth(w http.ResponseWriter, r *http.Request) {
 		RedirectURL: redirectURL,
 	}
 
-	handler, err := identity.AuthorizationHandler(w, r, c, param)
+	i := identity.New(c, param)
+
+	handler, err := i.AuthorizationHandler(r)
 	if err != nil {
 		log.Errorf(ctx, "%+v", err)
 	}
