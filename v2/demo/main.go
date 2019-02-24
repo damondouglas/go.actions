@@ -2,19 +2,15 @@ package main
 
 import (
 	"encoding/json"
-	"fmt"
-	"io/ioutil"
+	"log"
 	"net/http"
-	"os"
 
+	"github.com/damondouglas/go.actions/v2/identity"
 	"golang.org/x/oauth2"
 
 	"github.com/damondouglas/go.actions/v2"
 	"github.com/damondouglas/go.actions/v2/dialogflow"
-	"github.com/damondouglas/go.actions/v2/identity"
-	calendar "google.golang.org/api/calendar/v3"
 	"google.golang.org/appengine"
-	"google.golang.org/appengine/log"
 )
 
 type requestHandler func(*dialogflow.Request, http.ResponseWriter, *http.Request)
@@ -135,36 +131,37 @@ var (
 	}
 
 	intentMap = map[string]requestHandler{
-		"signin":  signin,
-		"profile": profile,
+		"signin":         signin,
+		"profile":        profile,
+		"fulfill_signin": profile,
 	}
 )
 
 func main() {
+	h := &identity.Handler{}
+	h.Store = store
+	http.HandleFunc("/auth", identity.AuthHandler)
+	http.HandleFunc("/exch", h.TokenHandler)
 	http.HandleFunc("/action", action)
-	http.HandleFunc("/auth", auth)
-	http.HandleFunc("/exch", auth)
 	appengine.Main()
 }
 
+func store(token *oauth2.Token) {
+	log.Println("TOKEN", token)
+}
+
 func action(w http.ResponseWriter, r *http.Request) {
-	ctx := appengine.NewContext(r)
 	req, err := request(r)
 	if err != nil {
-		log.Errorf(ctx, "%v", err)
+		log.Fatalf("%v", err)
 	}
 
 	key := extractType(req)
-	log.Infof(ctx, "key: %s", key)
-	if key == "" {
-		log.Errorf(ctx, "key is empty")
-		return
-	}
 
 	if encoder, ok := responseMap[key]; ok {
 		err = encoder.Encode(w)
 		if err != nil {
-			log.Errorf(ctx, "%v", err)
+			log.Fatalf("%v", err)
 		}
 	} else {
 		dispatch(req, w, r)
@@ -200,82 +197,40 @@ func extractType(req *dialogflow.Request) string {
 }
 
 func dispatch(req *dialogflow.Request, w http.ResponseWriter, r *http.Request) {
-	ctx := appengine.NewContext(r)
-
 	intent := req.QueryResult.Intent.DisplayName
-	log.Infof(ctx, "User:\n%+v\n", req.OriginalDetectIntentRequest.Payload.User)
+	log.Println("INTENT: ", intent)
 
 	if handler, ok := intentMap[intent]; ok {
 		handler(req, w, r)
 	}
 
 	evt := &v2.Event{
-		Name: "fallback",
+		Name: "goback",
 	}
 	err := evt.Encode(w)
 	if err != nil {
-		log.Errorf(ctx, "%+v", err)
+		log.Fatal(err)
 	}
 }
 
 func signin(req *dialogflow.Request, w http.ResponseWriter, r *http.Request) {
-	ctx := appengine.NewContext(r)
-
 	evt := v2.Signin{
 		RequiredResponse: "Welcome to the gallery.",
 	}
 	err := evt.Encode(w)
 	if err != nil {
-		log.Errorf(ctx, "%+v", err)
+		log.Fatal(err)
 	}
+
 }
 
 func profile(req *dialogflow.Request, w http.ResponseWriter, r *http.Request) {
-
-}
-
-func config() (*oauth2.Config, error) {
-	pathToSecret := os.Getenv(pathToSecretKey)
-	return identity.ConfigFromPath(pathToSecret)
-}
-
-func auth(w http.ResponseWriter, r *http.Request) {
-	ctx := appengine.NewContext(r)
-	c, err := config()
+	basic := v2.Simple{
+		Display: req.OriginalDetectIntentRequest.Payload.User.AccessToken,
+		Say:     "Hi",
+	}
+	err := basic.Encode(w)
 	if err != nil {
-		log.Errorf(ctx, "%+v", err)
+		log.Fatal(err)
 	}
-
-	redirectURL := appengine.DefaultVersionHostname(ctx)
-	if appengine.IsDevAppServer() {
-		redirectURL = os.Getenv(testHostKey)
-	}
-
-	redirectURL = redirectURL + "/exch"
-
-	param := &identity.RedirectParameters{
-		Offline:     true,
-		Force:       true,
-		ProjectID:   os.Getenv(projectIDKey),
-		Scopes:      append(identity.BaseScopes, calendar.CalendarReadonlyScope),
-		RedirectURL: redirectURL,
-	}
-
-	i := identity.New(c, param)
-
-	handler, err := i.AuthorizationHandler(r)
-	if err != nil {
-		log.Errorf(ctx, "%+v", err)
-	}
-
-	handler(w, r)
-}
-
-func exch(w http.ResponseWriter, r *http.Request) {
-	ctx := appengine.NewContext(r)
-	data, err := ioutil.ReadAll(r.Body)
-	if err != nil {
-		log.Errorf(ctx, "%+v", err)
-	}
-	fmt.Fprint(w, string(data))
 }
