@@ -35,7 +35,7 @@ const (
 )
 
 // StoreHandler handles token storage.
-type StoreHandler func(*oauth2.Token)
+type StoreHandler func(context.Context, *oauth2.Token)
 
 var (
 	app         *appConfig
@@ -176,7 +176,7 @@ func (h *Handler) token(ctx context.Context, code string, w http.ResponseWriter,
 		return err
 	}
 	if h.Store != nil {
-		h.Store(tok)
+		h.Store(ctx, tok)
 	}
 	h.redirect(tok, w, r)
 	return nil

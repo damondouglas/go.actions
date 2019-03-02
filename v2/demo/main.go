@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"log"
 	"net/http"
@@ -146,7 +147,7 @@ func main() {
 	appengine.Main()
 }
 
-func store(token *oauth2.Token) {
+func store(ctx context.Context, token *oauth2.Token) {
 	log.Println("TOKEN", token)
 }
 
