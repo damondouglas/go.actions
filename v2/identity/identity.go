@@ -105,11 +105,11 @@ func loadOauthConfig() (config *oauth2.Config, err error) {
 
 func host(r *http.Request) string {
 	ctx := appengine.NewContext(r)
-	host := appengine.DefaultVersionHostname(ctx)
+	h := "https://" + appengine.DefaultVersionHostname(ctx)
 	if appengine.IsDevAppServer() {
-		host = app.TestHost
+		h = app.TestHost
 	}
-	return host
+	return h
 }
 
 // Handler handles exchange token requests.
@@ -122,11 +122,9 @@ type Handler struct {
 func AuthHandler(w http.ResponseWriter, r *http.Request) {
 	v := r.URL.Query()
 	state := v.Get(stateKey)
-	// redirectURI := v.Get(redirectURIKey)
-	// oauthConfig.RedirectURL = redirectURI
 	redirectURI := host(r) + "/exch"
 	oauthConfig.RedirectURL = redirectURI
-	u := oauthConfig.AuthCodeURL(state)
+	u := oauthConfig.AuthCodeURL(state, oauth2.AccessTypeOffline, oauth2.ApprovalForce)
 	log.Println("URL: ", u)
 	http.Redirect(w, r, u, http.StatusFound)
 }
